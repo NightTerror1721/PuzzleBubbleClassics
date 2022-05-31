@@ -9,11 +9,9 @@ GameController::GameController(const std::string& name) :
 	_close{ true },
 	_window{},
 	_deltaClock{},
-	_phAccumulator{},
-	_fpsUps{ sf::seconds(1.f / default_fps) },
-	_phUps{ _fpsUps },
-	_frameClock{},
-	_frameTime{},
+	_phClock{},
+	_phTimeCurrent{},
+	_phTimeUp{ sf::seconds(1.f / max_physics_fps) },
 	_name{ name },
 	_vmode{ 640, 480 },
 	_wstyle{ WindowStyle::Default },
@@ -86,7 +84,6 @@ void GameController::loop()
 		processEvents();
 		update();
 		render();
-		//sleep();
 	}
 }
 
@@ -99,18 +96,33 @@ void GameController::init()
 
 void GameController::update()
 {
+	static sf::Time currentTime = sf::Time::Zero;
+	static unsigned int currentFps = 0;
+
 	if (!_close)
 	{
-		sf::Time delta = _deltaClock.restart();
-		_phAccumulator += delta;
-		_fps.update(delta);
+		_phTimeCurrent += _phClock.restart();
 
-		if (_phAccumulator > _phUps)
+		if (_phTimeCurrent >= _phTimeUp)
 		{
-			sf::Time updateDelta = _phAccumulator;
-			_phAccumulator = sf::Time::Zero;
-			GameObjectContainer::update(updateDelta);
+			sf::Time delta = _deltaClock.restart();
+
+			currentTime += delta;
+			currentFps += 1;
+			if (currentTime >= sf::seconds(1))
+			{
+				currentTime = sf::Time::Zero;
+				unsigned int fps = currentFps;
+				currentFps = 0;
+				std::cout << "Physics fps: " << fps << std::endl;
+			}
+
+			Int64 temp = static_cast<Int64>(_phTimeCurrent / _phTimeUp);
+			_phTimeCurrent -= _phTimeUp * temp;
+			GameObjectContainer::update(delta);
 		}
+
+		_fps.update();
 	}
 }
 
@@ -152,16 +164,6 @@ void GameController::processEvents()
 	}
 }
 
-void GameController::sleep()
-{
-	_frameTime = _frameClock.restart();
-	sf::Time delta = _frameTime - _fpsUps;
-	if (delta <= sf::Time::Zero)
-		delta = sf::microseconds(1);
-	sf::sleep(delta);
-	_frameClock.restart();
-}
-
 void GameController::onCreate(GameObject& obj)
 {
 }
@@ -170,6 +172,8 @@ void GameController::onCreate(GameObject& obj)
 
 void FPSMonitor::init()
 {
+	_clock.restart();
+
 	_text.setFillColor(sf::Color::Green);
 	_text.setCharacterSize(24);
 
@@ -180,8 +184,10 @@ void FPSMonitor::init()
 	_text.setString("0 fps");
 }
 
-void FPSMonitor::update(const sf::Time& delta)
+void FPSMonitor::update()
 {
+	sf::Time delta = _clock.restart();
+
 	_remaining -= static_cast<Int64>(delta.asMicroseconds());
 	_current++;
 
@@ -192,7 +198,6 @@ void FPSMonitor::update(const sf::Time& delta)
 		_current = 0;
 
 		_text.setString(std::to_string(_last) + " fps");
-		std::cout << std::string(_text.getString()) << std::endl;
 	}
 }
 void FPSMonitor::render(sf::RenderTarget& canvas)

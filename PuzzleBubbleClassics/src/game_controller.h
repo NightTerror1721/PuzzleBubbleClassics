@@ -18,6 +18,7 @@ class FPSMonitor
 private:
 	static constexpr Int64 identity = 1000000;
 
+	sf::Clock _clock;
 	Int64 _remaining = identity;
 	unsigned int _current = 0;
 	unsigned int _last = 0;
@@ -28,7 +29,7 @@ private:
 public:
 	void init();
 
-	void update(const sf::Time& delta);
+	void update();
 	void render(sf::RenderTarget& canvas);
 
 	inline bool enabled() const { return _enabled; }
@@ -41,19 +42,16 @@ public:
 	static constexpr int canvas_width = utils::game_canvas_with;
 	static constexpr int canvas_height = utils::game_canvas_height;
 
-	static constexpr unsigned int default_fps = 60;
+	static constexpr unsigned int max_physics_fps = 120;
 
 private:
 	bool _close;
 	sf::RenderWindow _window;
 
 	sf::Clock _deltaClock;
-	sf::Time _fpsUps;
-	sf::Time _phAccumulator;
-	sf::Time _phUps;
-
-	sf::Clock _frameClock;
-	sf::Time _frameTime;
+	sf::Clock _phClock;
+	sf::Time _phTimeCurrent;
+	sf::Time _phTimeUp;
 
 	std::string _name;
 	sf::VideoMode _vmode;
@@ -92,7 +90,6 @@ private:
 	void update();
 	void render();
 	void processEvents();
-	void sleep();
 
 protected:
 	virtual void onCreate(GameObject& element) override;
