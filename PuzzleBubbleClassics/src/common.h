@@ -39,6 +39,10 @@ typedef std::string String;
 
 typedef std::filesystem::path Path;
 
+using sf::Vector2f;
+using sf::Vector2i;
+using sf::Vector2u;
+
 namespace fs = std::filesystem;
 
 namespace utils

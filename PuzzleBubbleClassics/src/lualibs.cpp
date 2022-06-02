@@ -1,9 +1,7 @@
 #include "lualibs.h"
 
-#include <lua/lua.hpp>
-#include <LuaBridge/LuaBridge.h>
-
-using luabridge::LuaRef;
+#include "bubbles.h"
+#include "globals.h"
 
 namespace lua::lib
 {
@@ -75,7 +73,42 @@ namespace lua::lib
 
 namespace lua::lib
 {
-	
+	namespace bubmodel
+	{
+		static BubbleModel* createModel(const std::string& name)
+		{
+			auto model = globals::bubblesManager.createModel(name);
+			BubbleModel* ptr = model.get();
+			return ptr;
+		}
+	}
+
+	void load_bubble_models_import(LuaState* state)
+	{
+		luabridge::getGlobalNamespace(state)
+			.beginNamespace("Bubbles")
+				.beginClass<BubbleModel>("BubbleModel")
+					.addData("name", &BubbleModel::name, false)
+					.addData("colorless", &BubbleModel::colorless)
+					.addData("multicolor", &BubbleModel::multicolor)
+					.addData("floating", &BubbleModel::floating)
+					.addData("destroyInBottom", &BubbleModel::destroyInBottom)
+					.addData("requireDestroyToClear", &BubbleModel::requireDestroyToClear)
+					.addData("onlyBoardColorInArrowGen", &BubbleModel::onlyBoardColorInArrowGen)
+					.addProperty("resistence", &BubbleModel::resistence)
+					.addProperty("pointsOfTurnsToDown", &BubbleModel::pointsOfTurnsToDown)
+
+					.addProperty("onInit", &BubbleModel::lua_GetOnInit, &BubbleModel::lua_SetOnInit)
+					.addProperty("onCollide", &BubbleModel::lua_GetOnCollide, &BubbleModel::lua_SetOnCollide)
+					.addProperty("onInserted", &BubbleModel::lua_GetOnInserted, &BubbleModel::lua_SetOnInserted)
+					.addProperty("onExplode", &BubbleModel::lua_GetOnExplode, &BubbleModel::lua_SetOnExplode)
+					.addProperty("onNeighborInserted", &BubbleModel::lua_GetOnNeighborInserted, &BubbleModel::lua_SetOnNeighborInserted)
+					.addProperty("onNeighborExplode", &BubbleModel::lua_GetOnNeighborExplode, &BubbleModel::lua_SetOnNeighborExplode)
+
+					.addStaticFunction("create", &bubmodel::createModel)
+				.endClass()
+			.endNamespace();
+	}
 }
 
 

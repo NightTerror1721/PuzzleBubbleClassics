@@ -13,16 +13,16 @@ int main(int argc, char** argv)
 {
 	globals::fonts.loadAll();
 
-	globals::game.start();
+	//globals::game.start();
 
-	/*LuaState* state = lua::new_state();
+	LuaState* state = lua::new_state();
 
 	lua::open_default_libs(state);
-	lua::lib::register_vec2f_class(state);
+	lua::lib::load_bubble_models_import(state);
 
 	lua::runfile(state, "test.lua");
 
-	lua::close_state(state);*/
+	lua::close_state(state);
 
 
 	/*Json json = {

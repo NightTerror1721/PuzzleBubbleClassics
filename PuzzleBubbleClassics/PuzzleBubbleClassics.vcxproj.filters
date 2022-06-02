@@ -57,6 +57,9 @@
     <ClCompile Include="src\assets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\RNG.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h">
@@ -92,9 +95,6 @@
     <ClInclude Include="src\utils\NullableReference.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\fonts.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
     <ClInclude Include="src\globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -103,6 +103,12 @@
     </ClInclude>
     <ClInclude Include="src\assets.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fonts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\RNG.h">
+      <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

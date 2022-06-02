@@ -171,6 +171,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\props.cpp" />
     <ClCompile Include="src\resources.cpp" />
+    <ClCompile Include="src\utils\RNG.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\assets.h" />
@@ -186,6 +187,7 @@
     <ClInclude Include="src\props.h" />
     <ClInclude Include="src\resources.h" />
     <ClInclude Include="src\utils\NullableReference.h" />
+    <ClInclude Include="src\utils\RNG.h" />
     <ClInclude Include="src\utils\SimpleContainer.h" />
     <ClInclude Include="src\utils\SimpleElementManager.h" />
   </ItemGroup>
