@@ -3,6 +3,7 @@
 #include <random>
 
 #include "common.h"
+#include "globals.h"
 #include "game_basics.h"
 #include "utils/SimpleElementManager.h"
 
@@ -32,12 +33,10 @@ public:
 	}
 
 private:
-	static TextureManager _Root;
-
 	explicit TextureManager(int);
 
 public:
-	static inline TextureManager& root() { return _Root; }
+	friend GlobalsManager;
 };
 
 

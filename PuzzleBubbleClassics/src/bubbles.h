@@ -364,7 +364,7 @@ private:
 	BouncingBounds _bounce;
 
 public:
-	Bubble(const std::shared_ptr<BubbleModel>& model, TextureManager& textures = TextureManager::root());
+	Bubble(const std::shared_ptr<BubbleModel>& model, TextureManager& textures = globals::textures());
 	virtual ~Bubble();
 
 	const std::shared_ptr<BubbleModel>& getModel() const;
@@ -451,10 +451,10 @@ private:
 	std::unordered_map<String, std::shared_ptr<BubbleModel>> _models;
 	std::shared_ptr<BubbleModel> _defaultModel;
 
-
+private:
+	BubbleModelManager() = default;
 
 public:
-	BubbleModelManager() = default;
 	BubbleModelManager(const BubbleModelManager&) = delete;
 	BubbleModelManager(BubbleModelManager&&) noexcept = default;
 	~BubbleModelManager() = default;
@@ -478,7 +478,7 @@ public:
 	}
 
 public:
-	static BubbleModelManager instance;
+	friend GlobalsManager;
 };
 
 

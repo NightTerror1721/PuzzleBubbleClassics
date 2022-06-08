@@ -3,6 +3,128 @@
 #include "bubbles.h"
 #include "globals.h"
 
+
+namespace lua::lib
+{
+	namespace defs
+	{
+		enum class StandardLibId
+		{
+			Base,
+			Coroutine,
+			Package,
+			String,
+			Utf8,
+			Table,
+			Math,
+			Io,
+			Os,
+			Debug,
+
+			Bubbles
+		};
+
+		static std::unordered_map<String, StandardLibId> StandardLibsRefs
+		{
+			{ "base", StandardLibId::Base },
+			{ "coroutine", StandardLibId::Coroutine },
+			{ "package", StandardLibId::Package },
+			{ "string", StandardLibId::String },
+			{ "utf8", StandardLibId::Utf8 },
+			{ "table", StandardLibId::Table },
+			{ "math", StandardLibId::Math },
+			{ "io", StandardLibId::Io },
+			{ "os", StandardLibId::Os },
+			{ "debug", StandardLibId::Debug },
+		};
+
+		static void callOpenLuaStandardLib(LuaState* state, const LuaRef& env, lua_CFunction openFunction, const char* libname)
+		{
+			lua_pushcfunction(state, &luaopen_base);
+			lua_pushstring(state, "");
+			lua_call(state, 1, 1);
+
+			luabridge::push(state, luabridge::Nil());
+			while (lua_next(state, -2))
+			{
+				LuaRef key = LuaRef::fromStack(state, -2);
+				LuaRef val = LuaRef::fromStack(state, -1);
+
+				env[key] = val;
+
+				lua_pop(state, 1);
+			}
+		}
+
+		static bool openStandardLib(LuaState* state, const String& name)
+		{
+			using enum StandardLibId;
+
+			if (!StandardLibsRefs.contains(name))
+				return false;
+
+			const LuaRef* env = globals::luaScripts().getCurrentRunScriptEnv();
+			if (!env)
+				return false;
+
+			StandardLibId id = StandardLibsRefs[name];
+			switch (id)
+			{
+				case Base: callOpenLuaStandardLib(state, *env, &luaopen_base, ""); return true;
+			}
+
+			return false;
+		}
+
+		static inline LuaScript getCurrentRunningScript()
+		{
+			return globals::luaScripts().getCurrentRunScript();
+		}
+
+		static LuaRef do_import(const std::string& spath, lua_State* state)
+		{
+			if (openStandardLib(state, spath))
+			{
+				LuaRef result(state);
+				result.pop();
+				return result;
+			}
+			else
+			{
+				Path path(spath);
+				if (!path.is_absolute())
+				{
+					LuaScript currentScript = getCurrentRunningScript();
+					if (!currentScript)
+						return LuaRef(state);
+
+					path = std::filesystem::absolute(currentScript.getDirectory() / path);
+				}
+
+				if (!path.has_extension())
+					path += ".lua";
+
+				LuaScript script = globals::luaScripts().getScript(path);
+				if (!script)
+					return LuaRef(state);
+
+				LuaRef env = LuaRef::newTable(state);
+				script(env);
+
+				return env;
+			}
+		}
+	}
+
+	void load_defaults(LuaState* state)
+	{
+		luabridge::getGlobalNamespace(state)
+			.addFunction("import", &defs::do_import);
+	}
+}
+
+
+
 namespace lua::lib
 {
 	namespace vec2f
@@ -77,7 +199,7 @@ namespace lua::lib
 	{
 		static BubbleModel* createModel(const std::string& name)
 		{
-			auto model = globals::bubblesManager.createModel(name);
+			auto model = globals::bubbleModels().createModel(name);
 			BubbleModel* ptr = model.get();
 			return ptr;
 		}

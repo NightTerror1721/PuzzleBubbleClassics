@@ -1,6 +1,9 @@
-local name = "ColorBubble";
+import "base"
+funcs = import "funcs"
 
-local model = Bubbles.BubbleModel.create(name)
+name = "ColorBubble";
+
+model = Bubbles.BubbleModel.create(name)
 
 model.colorless = false
 model.multicolor = false
@@ -20,3 +23,7 @@ print("here!")
 model.onInit = function(self, color, editorMode)
     print("ola")
 end
+
+
+--print(funcs.plus(10, 25))
+print("funcs")

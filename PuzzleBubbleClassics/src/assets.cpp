@@ -2,10 +2,8 @@
 #include "common.h"
 #include "resources.h"
 
-TextureManager TextureManager::_Root(0);
-
 TextureManager::TextureManager(int) : SimpleElementManager() {}
-TextureManager::TextureManager() : SimpleElementManager(_Root) {}
+TextureManager::TextureManager() : SimpleElementManager(globals::textures()) {}
 TextureManager::TextureManager(TextureManager& parent) : SimpleElementManager(parent) {}
 
 bool TextureManager::load(const Path& filepath, const String& tag)

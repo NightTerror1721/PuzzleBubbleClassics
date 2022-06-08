@@ -246,8 +246,6 @@ std::shared_ptr<Bubble> BubbleModelManager::createBubble(TextureManager& texture
 	return bubble;
 }
 
-BubbleModelManager BubbleModelManager::instance;
-
 
 
 
@@ -256,7 +254,7 @@ BubbleModelManager BubbleModelManager::instance;
 
 void RandomBubbleModelSelector::setModelScore(const String& modelName, UInt16 score)
 {
-	if (BubbleModelManager::instance.hasModel(modelName))
+	if (globals::bubbleModels().hasModel(modelName))
 	{
 		if (score == 0)
 			_models.erase(modelName);
@@ -277,7 +275,7 @@ UInt16 RandomBubbleModelSelector::getModelScore(const String& modelName) const
 std::shared_ptr<BubbleModel> RandomBubbleModelSelector::selectModel(RNG& rand) const
 {
 	if (_score == 0)
-		return BubbleModelManager::instance.getDefaultModel();
+		return globals::bubbleModels().getDefaultModel();
 
 	computeScore();
 
@@ -288,14 +286,14 @@ std::shared_ptr<BubbleModel> RandomBubbleModelSelector::selectModel(RNG& rand) c
 		value -= model.second;
 		if (value < 0)
 		{
-			result = BubbleModelManager::instance.getModel(model.first);
+			result = globals::bubbleModels().getModel(model.first);
 			break;
 		}
 	}
 
 	if (result)
 		return result;
-	return BubbleModelManager::instance.getDefaultModel();
+	return globals::bubbleModels().getDefaultModel();
 }
 
 void RandomBubbleModelSelector::computeScore() const

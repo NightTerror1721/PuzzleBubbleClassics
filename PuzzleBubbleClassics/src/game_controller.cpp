@@ -1,6 +1,6 @@
 #include "game_controller.h"
 
-#include "globals.h"
+#include "fonts.h"
 
 GameController globals::game{ "!Kram Tetris" };
 
@@ -177,7 +177,7 @@ void FPSMonitor::init()
 	_text.setFillColor(sf::Color::Green);
 	_text.setCharacterSize(24);
 
-	_text.setFont(globals::fonts["arial"]);
+	_text.setFont(globals::fonts()["arial"]);
 
 	_text.setPosition(10, 10);
 

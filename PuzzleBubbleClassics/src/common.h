@@ -17,6 +17,8 @@
 #include <string>
 #include <vector>
 #include <limits>
+#include <ranges>
+#include <stack>
 #include <map>
 #include <new>
 

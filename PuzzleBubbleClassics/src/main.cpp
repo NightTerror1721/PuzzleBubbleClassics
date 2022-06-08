@@ -2,27 +2,33 @@
 #include "json.h"
 #include "resources.h"
 #include "props.h"
+#include "fonts.h"
 #include "lualibs.h"
 #include "game_basics.h"
-#include "globals.h"
 #include "game_controller.h"
 
 
 
 int main(int argc, char** argv)
 {
-	globals::fonts.loadAll();
+	globals::fonts().loadAll();
 
 	//globals::game.start();
 
-	LuaState* state = lua::new_state();
+	LuaState* state = lua::get_default_state();
 
 	lua::open_default_libs(state);
 	lua::lib::load_bubble_models_import(state);
+	lua::lib::load_defaults(state);
 
-	lua::runfile(state, "test.lua");
+	auto script = lua::get_script("test_scripts/test.lua");
 
-	lua::close_state(state);
+
+	script.setEnvValuesFromGlobal("Bubbles");
+	script();
+
+	script.getEnv().print(std::cout);
+	script.getEnvValue("name").print(std::cout);
 
 
 	/*Json json = {

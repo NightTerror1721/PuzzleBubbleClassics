@@ -9,21 +9,19 @@ namespace lua
 		return String(cstr, len);
 	}
 
-	static int catch_error(LuaState* state, int status, String* error_msg)
+	static inline bool catch_error(LuaState* state, int status)
 	{
-		if (status != LUA_OK)
+		try
 		{
-			if (error_msg)
-			{
-				*error_msg = to_string(state, -1);
-				std::cerr << *error_msg << std::endl;
-			}
-			else
-			{
-				std::cerr << lua_tostring(state, -1) << std::endl;
-			}
+			if (status != LUA_OK)
+				throw LuaException(state, status);
+			return true;
 		}
-		return status;
+		catch (const LuaException& ex)
+		{
+			std::cerr << ex.what() << std::endl;
+			return false;
+		}
 	}
 }
 
@@ -39,49 +37,162 @@ namespace lua
 	}
 
 
-
-	
-
-	int load_file(LuaState* state, const char* filename, String* error_msg)
-	{
-		return catch_error(state, luaL_loadfile(state, filename), error_msg);
-	}
-
-	int load_file(LuaState* state, const String& filename, String* error_msg)
-	{
-		return catch_error(state, luaL_loadfile(state, filename.c_str()), error_msg);
-	}
-
-	int load_file(LuaState* state, const Path& filename, String* error_msg)
-	{
-		return catch_error(state, luaL_loadfile(state, filename.string().c_str()), error_msg);
-	}
-
-	int runfile(LuaState* state, const char* filename, String* error_msg)
-	{
-		int status = load_file(state, filename, error_msg);
-		if (status == LUA_OK)
-			status = catch_error(state, lua_pcall(state, 0, LUA_MULTRET, 0), error_msg);
-		return status;
-	}
-
-	int runfile(LuaState* state, const String& filename, String* error_msg)
-	{
-		int status = load_file(state, filename, error_msg);
-		if (status == LUA_OK)
-			status = catch_error(state, lua_pcall(state, 0, LUA_MULTRET, 0), error_msg);
-		return status;
-	}
-
-	int runfile(LuaState* state, const Path& filename, String* error_msg)
-	{
-		int status = load_file(state, filename, error_msg);
-		if (status == LUA_OK)
-			status = catch_error(state, lua_pcall(state, 0, LUA_MULTRET, 0), error_msg);
-		return status;
-	}
-
-
 	void error(LuaState* state, const char* msg) { luaL_error(state, msg); }
 	void error(LuaState* state, const String& msg) { luaL_error(state, msg.c_str()); }
+
+
+	LuaState* get_default_state() { return globals::luaScripts().getState(); }
+
+
+	LuaScript get_script(const char* filename) { return globals::luaScripts().getScript(filename); }
+	LuaScript get_script(const String& filename) { return globals::luaScripts().getScript(filename); }
+	LuaScript get_script(const Path& filepath) { return globals::luaScripts().getScript(filepath); }
+}
+
+
+
+
+
+
+
+LuaChunk::LuaChunk(const LuaScriptManagerLink& managerLink, const Path& path) :
+	_manager(managerLink),
+	_path(std::filesystem::absolute(path)),
+	_chunk(managerLink.getLuaState()),
+	_env(managerLink.getLuaState()),
+	_id(),
+	_dirPath()
+{
+	_dirPath = Path(_path).remove_filename();
+	_id = _path.string();
+	load();
+}
+
+bool LuaChunk::load()
+{
+	auto state = _manager.getLuaState();
+	bool status = lua::catch_error(state, luaL_loadfile(state, _path.string().c_str()));
+	if (status)
+	{
+		_chunk = LuaRef::fromStack(state);
+		_env = LuaRef::newTable(state);
+		lua_pop(state, 1);
+
+		return true;
+	}
+	else
+	{
+		destroy();
+		return false;
+	}
+}
+
+void LuaChunk::destroy()
+{
+	_manager = LuaScriptManagerLink();
+	_path = Path();
+	_dirPath = Path();
+	_id = String();
+}
+
+LuaRef* LuaChunk::getEnv()
+{
+	if (isValid())
+		return std::addressof(_env);
+	return nullptr;
+}
+
+const LuaRef* LuaChunk::getEnv() const
+{
+	if (isValid())
+		return std::addressof(_env);
+	return nullptr;
+}
+
+void LuaChunk::run(const LuaRef* customEnv) const
+{
+	if (isValid())
+	{
+		const LuaRef& env = customEnv ? *customEnv : _env;
+		auto state = _manager.getLuaState();
+
+		prepareEnv(state, env);
+
+		_chunk.push();
+		env.push();
+		lua_setupvalue(state, -2, 1);
+
+		_manager.pushCall(_id, env);
+		lua::catch_error(state, lua_pcall(state, 0, LUA_MULTRET, 0));
+		_manager.popCall();
+	}
+}
+
+void LuaChunk::prepareEnv(LuaState* state, const LuaRef& env)
+{
+	//env[lua::lib::defs::autoimport::Print] = luabridge::getGlobal(state, lua::lib::defs::autoimport::Print);
+	env[lua::lib::defs::autoimport::Import] = luabridge::getGlobal(state, lua::lib::defs::autoimport::Import);
+}
+
+
+
+
+
+
+
+LuaScriptManager::LuaScriptManager() :
+	_state(&globals::luaGlobalState().state()),
+	_chunks(),
+	_callStack()
+{
+	//lua::open_default_libs(_state);
+}
+
+LuaScriptManager::~LuaScriptManager() {}
+
+std::shared_ptr<LuaChunk> LuaScriptManager::findChunk(const Path& path)
+{
+	Path absPath = std::filesystem::absolute(path);
+	auto it = _chunks.find(absPath.string());
+	if (it != _chunks.end())
+		return it->second;
+	
+	std::shared_ptr<LuaChunk> chunk = std::make_shared<LuaChunk>(LuaScriptManagerLink(*this), absPath);
+	if (chunk->isValid())
+	{
+		_chunks.insert({ chunk->getId(), chunk });
+		return chunk;
+	}
+
+	return nullptr;
+}
+
+LuaScript LuaScriptManager::getScript(const Path& path)
+{
+	auto chunk = findChunk(path);
+	if (chunk)
+		return LuaScript(chunk);
+	return LuaScript();
+}
+
+LuaScript LuaScriptManager::getCurrentRunScript() const
+{
+	if (!_callStack.empty())
+	{
+		const auto& info = _callStack.top();
+		auto it = _chunks.find(info.scriptId);
+		if (it != _chunks.end())
+			return LuaScript(it->second);
+	}
+	return LuaScript();
+}
+
+const LuaRef* LuaScriptManager::getCurrentRunScriptEnv() const
+{
+	if (!_callStack.empty())
+	{
+		const auto& link = _callStack.top();
+		return link.currentEnv;
+	}
+	return nullptr;
 }
