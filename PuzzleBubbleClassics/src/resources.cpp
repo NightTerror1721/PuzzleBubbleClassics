@@ -3,8 +3,12 @@
 namespace resource
 {
 	const Folder data = "data"_p;
-	const Folder fonts = Folder(data, "fonts"_p);
-	const Folder textures = Folder(data, "textures"_p);
+	const Folder fonts(data, "fonts"_p);
+	const Folder textures(data, "textures"_p);
+	const Folder models(data, "models"_p);
+	const Folder audio(data, "audio"_p);
+	const Folder sounds(audio, "sounds"_p);
+	const Folder music(audio, "music"_p);
 }
 
 namespace resource
@@ -98,5 +102,15 @@ namespace resource
 	bool Folder::writeJson(const Path& path, const Json& json) const
 	{
 		return openOutput(path, [&json](std::ostream& os) { utils::json::write(os, json); });
+	}
+
+	LuaScript Folder::getLuaScript(const Path& path) const
+	{
+		return lua::get_script(_path / path);
+	}
+
+	LuaScript Folder::runLuaScript(const Path& path) const
+	{
+		return lua::run_script(_path / path);
 	}
 }

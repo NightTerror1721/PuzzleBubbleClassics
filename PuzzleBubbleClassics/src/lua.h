@@ -27,6 +27,10 @@ namespace lua
 	LuaScript get_script(const char* filename);
 	LuaScript get_script(const String& filename);
 	LuaScript get_script(const Path& filepath);
+
+	LuaScript run_script(const char* filename);
+	LuaScript run_script(const String& filename);
+	LuaScript run_script(const Path& filepath);
 }
 
 namespace lua::meta
@@ -60,10 +64,10 @@ namespace lua::meta
 	constexpr const char* name = "__name";
 }
 
-namespace lua::lib::defs::autoimport
+namespace lua::lib::defs::name
 {
 	static constexpr const char Import[] = "import";
-	static constexpr const char Print[] = "print";
+	static constexpr const char OpenLib[] = "openlib";
 }
 
 namespace lua
@@ -111,7 +115,7 @@ public:
 	LuaGlobalState& operator= (LuaGlobalState&&) noexcept = delete;
 
 private:
-	inline LuaGlobalState() : _state(lua::new_state()) {}
+	LuaGlobalState();
 
 public:
 	inline ~LuaGlobalState()
@@ -242,6 +246,8 @@ public:
 
 	inline bool isValid() const { return _chunk && _chunk->isValid(); }
 
+	inline Path getPath() const { return isValid() ? _chunk->getPath() : Path(); }
+
 	inline Path getDirectory() const { return isValid() ? _chunk->getDirectory() : Path(); }
 
 	inline LuaRef& getEnv() { return *_chunk->getEnv(); }
@@ -273,11 +279,11 @@ private:
 	template <typename _Ty> requires
 		std::ranges::range<_Ty> &&
 		(std::convertible_to<std::ranges::range_value_t<_Ty>, const char*> || std::same_as<std::ranges::range_value_t<_Ty>, std::string>)
-	void _setEnvValuesFromGlobal(const _Ty& names)
+	void _setEnvValuesFromGlobal(const _Ty& names) const
 	{
 		if (isValid())
 		{
-			LuaRef& env = *_chunk->getEnv();
+			const LuaRef& env = *_chunk->getEnv();
 			LuaState* state = _chunk->getLuaState();
 			auto end = std::ranges::end(names);
 			for (auto it = std::ranges::begin(names); it != end; ++it)
@@ -301,12 +307,12 @@ public:
 		_setEnvValuesFromGlobal<_Ty>(names);
 	}
 
-	inline void setEnvValuesFromGlobal(std::initializer_list<const char*> names)
+	inline void setEnvValuesFromGlobal(std::initializer_list<const char*> names) const
 	{
 		_setEnvValuesFromGlobal(names);
 	}
 
-	inline void setEnvValuesFromGlobal(std::initializer_list<String> names)
+	inline void setEnvValuesFromGlobal(std::initializer_list<String> names) const
 	{
 		_setEnvValuesFromGlobal(names);
 	}

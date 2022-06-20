@@ -19,6 +19,13 @@
     <Filter Include="Source Files\utils">
       <UniqueIdentifier>{21f8a6d7-6bec-4ccb-94cc-806f06d37af7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Module Files">
+      <UniqueIdentifier>{993e7cc6-ee5f-469f-bb1b-8ed51d9459e6}</UniqueIdentifier>
+      <Extensions>ixx</Extensions>
+    </Filter>
+    <Filter Include="Module Files\utils">
+      <UniqueIdentifier>{fbb87a7e-c04e-4808-8720-0027062a69ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -59,6 +66,21 @@
     </ClCompile>
     <ClCompile Include="src\utils\RNG.cpp">
       <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\audio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\level.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bubble_board.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scenario.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicReference.ixx">
+      <Filter>Module Files\utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -109,6 +131,30 @@
     </ClInclude>
     <ClInclude Include="src\utils\RNG.h">
       <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\audio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\level.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\ArrayView.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\bubble_board.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\StaticArray.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\ArrayIterator.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\BasicReference.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scenario.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -4,6 +4,16 @@
 #include "globals.h"
 
 
+namespace lua::lib::name
+{
+	static constexpr const char pbcid[] = "PBC";
+	static constexpr String pbcname(const char* name) { return String(pbcid) + "." + String(name); }
+
+	static constexpr const char bubbles[] = "bubbles";
+	static constexpr const char utils[] = "utils";
+}
+
+
 namespace lua::lib
 {
 	namespace defs
@@ -21,24 +31,28 @@ namespace lua::lib
 			Os,
 			Debug,
 
-			Bubbles
+			PBC_Utils,
+			PBC_Bubbles
 		};
 
-		static std::unordered_map<String, StandardLibId> StandardLibsRefs
+		static const std::unordered_map<String, StandardLibId> StandardLibsRefs
 		{
 			{ "base", StandardLibId::Base },
-			{ "coroutine", StandardLibId::Coroutine },
-			{ "package", StandardLibId::Package },
-			{ "string", StandardLibId::String },
-			{ "utf8", StandardLibId::Utf8 },
-			{ "table", StandardLibId::Table },
-			{ "math", StandardLibId::Math },
-			{ "io", StandardLibId::Io },
-			{ "os", StandardLibId::Os },
-			{ "debug", StandardLibId::Debug },
+			{ LUA_COLIBNAME, StandardLibId::Coroutine },
+			{ LUA_LOADLIBNAME, StandardLibId::Package },
+			{ LUA_STRLIBNAME, StandardLibId::String },
+			{ LUA_UTF8LIBNAME, StandardLibId::Utf8 },
+			{ LUA_TABLIBNAME, StandardLibId::Table },
+			{ LUA_MATHLIBNAME, StandardLibId::Math },
+			{ LUA_IOLIBNAME, StandardLibId::Io },
+			{ LUA_OSLIBNAME, StandardLibId::Os },
+			{ LUA_DBLIBNAME, StandardLibId::Debug },
+
+			{ lib::name::pbcname(lib::name::utils), StandardLibId::PBC_Utils },
+			{ lib::name::pbcname(lib::name::bubbles), StandardLibId::PBC_Bubbles }
 		};
 
-		static void callOpenLuaStandardLib(LuaState* state, const LuaRef& env, lua_CFunction openFunction, const char* libname)
+		static bool callOpenLuaStandardLib(LuaState* state, const LuaRef& env, lua_CFunction openFunction, const char* libname)
 		{
 			lua_pushcfunction(state, &luaopen_base);
 			lua_pushstring(state, "");
@@ -54,9 +68,30 @@ namespace lua::lib
 
 				lua_pop(state, 1);
 			}
+
+			lua_pop(state, 1);
+			return true;
 		}
 
-		static bool openStandardLib(LuaState* state, const String& name)
+		static bool callOpenBpsLib(LuaState* state, const LuaRef& env, std::pair<bool, String> (*openFunction)(LuaState*))
+		{
+			auto result = openFunction(state);
+			if (result.first)
+			{
+				LuaRef bps = env[lib::name::pbcid];
+				if (!bps.isTable())
+				{
+					env[lib::name::pbcid] = LuaRef::newTable(state);
+					bps = env[lib::name::pbcid];
+				}
+
+				bps[result.second] = luabridge::getGlobal(state, result.second.c_str());
+				return true;
+			}
+			return false;
+		}
+
+		static bool openStandardLib(const std::string& name, lua_State* state)
 		{
 			using enum StandardLibId;
 
@@ -67,10 +102,22 @@ namespace lua::lib
 			if (!env)
 				return false;
 
-			StandardLibId id = StandardLibsRefs[name];
+			StandardLibId id = StandardLibsRefs.at(name);
 			switch (id)
 			{
-				case Base: callOpenLuaStandardLib(state, *env, &luaopen_base, ""); return true;
+				case Base: return callOpenLuaStandardLib(state, *env, &luaopen_base, "");
+				case Coroutine: return callOpenLuaStandardLib(state, *env, &luaopen_coroutine, LUA_COLIBNAME);
+				case Package: return callOpenLuaStandardLib(state, *env, &luaopen_package, LUA_LOADLIBNAME);
+				case String: return callOpenLuaStandardLib(state, *env, &luaopen_string, LUA_STRLIBNAME);
+				case Utf8: return callOpenLuaStandardLib(state, *env, &luaopen_utf8, LUA_UTF8LIBNAME);
+				case Table: return callOpenLuaStandardLib(state, *env, &luaopen_table, LUA_TABLIBNAME);
+				case Math: return callOpenLuaStandardLib(state, *env, &luaopen_math, LUA_MATHLIBNAME);
+				case Io: return callOpenLuaStandardLib(state, *env, &luaopen_io, LUA_IOLIBNAME);
+				case Os: return callOpenLuaStandardLib(state, *env, &luaopen_os, LUA_OSLIBNAME);
+				case Debug: return callOpenLuaStandardLib(state, *env, &luaopen_debug, LUA_DBLIBNAME);
+
+				case PBC_Utils: return callOpenBpsLib(state, *env, &load_utils_lib);
+				case PBC_Bubbles: return callOpenBpsLib(state, *env, &load_bubble_models_import);
 			}
 
 			return false;
@@ -81,45 +128,37 @@ namespace lua::lib
 			return globals::luaScripts().getCurrentRunScript();
 		}
 
-		static LuaRef do_import(const std::string& spath, lua_State* state)
+		static LuaRef importScript(const std::string& spath, lua_State* state)
 		{
-			if (openStandardLib(state, spath))
+			Path path(spath);
+			if (!path.is_absolute())
 			{
-				LuaRef result(state);
-				result.pop();
-				return result;
-			}
-			else
-			{
-				Path path(spath);
-				if (!path.is_absolute())
-				{
-					LuaScript currentScript = getCurrentRunningScript();
-					if (!currentScript)
-						return LuaRef(state);
-
-					path = std::filesystem::absolute(currentScript.getDirectory() / path);
-				}
-
-				if (!path.has_extension())
-					path += ".lua";
-
-				LuaScript script = globals::luaScripts().getScript(path);
-				if (!script)
+				LuaScript currentScript = getCurrentRunningScript();
+				if (!currentScript)
 					return LuaRef(state);
 
-				LuaRef env = LuaRef::newTable(state);
-				script(env);
-
-				return env;
+				path = std::filesystem::absolute(currentScript.getDirectory() / path);
 			}
+
+			if (!path.has_extension())
+				path += ".lua";
+
+			LuaScript script = globals::luaScripts().getScript(path);
+			if (!script)
+				return LuaRef(state);
+
+			LuaRef env = LuaRef::newTable(state);
+			script(env);
+
+			return env;
 		}
 	}
 
 	void load_defaults(LuaState* state)
 	{
 		luabridge::getGlobalNamespace(state)
-			.addFunction("import", &defs::do_import);
+			.addFunction(defs::name::Import, &defs::importScript)
+			.addFunction(defs::name::OpenLib, &defs::openStandardLib);
 	}
 }
 
@@ -195,6 +234,85 @@ namespace lua::lib
 
 namespace lua::lib
 {
+	namespace utilslib
+	{
+		namespace files
+		{
+			static void for_each_file_in_directory(const std::string& sdir, LuaRef action)
+			{
+				Path dir(sdir);
+				if (fs::is_directory(dir))
+				{
+					for (const auto& entry : fs::directory_iterator(dir))
+					{
+						if (entry.exists())
+							action(entry.path().string());
+					}
+				}
+			}
+
+			static bool is_directory(const std::string& sdir)
+			{
+				return fs::is_directory(sdir);
+			}
+
+			static bool is_file(const std::string& sdir)
+			{
+				return fs::is_regular_file(sdir);
+			}
+
+			static bool exists(const std::string& sdir)
+			{
+				return fs::exists(sdir);
+			}
+
+			static std::string filename(const std::string& sdir)
+			{
+				return Path(sdir).filename().string();
+			}
+		}
+
+		static std::string current_script_path()
+		{
+			auto script = globals::luaScripts().getCurrentRunScript();
+			if (!script)
+				return "";
+			return script.getPath().string();
+		}
+
+		static std::string current_script_directory()
+		{
+			auto script = globals::luaScripts().getCurrentRunScript();
+			if (!script)
+				return "";
+			return script.getDirectory().string();
+		}
+	}
+
+	std::pair<bool, String> load_utils_lib(LuaState* state)
+	{
+		luabridge::getGlobalNamespace(state)
+			.beginNamespace(name::utils)
+				.beginNamespace("files")
+					.addFunction("forEachEntryInDirectory", &utilslib::files::for_each_file_in_directory)
+					.addFunction("isDirectory", &utilslib::files::is_directory)
+					.addFunction("isFile", &utilslib::files::is_file)
+					.addFunction("exists", &utilslib::files::exists)
+					.addFunction("filename", &utilslib::files::filename)
+				.endNamespace()
+
+				.addFunction("getCurrentScriptPath", &utilslib::current_script_path)
+				.addFunction("getCurrentScriptDirectory", &utilslib::current_script_directory)
+			.endNamespace();
+
+		return { true, name::utils };
+	}
+}
+
+
+
+namespace lua::lib
+{
 	namespace bubmodel
 	{
 		static BubbleModel* createModel(const std::string& name)
@@ -205,10 +323,10 @@ namespace lua::lib
 		}
 	}
 
-	void load_bubble_models_import(LuaState* state)
+	std::pair<bool, String> load_bubble_models_import(LuaState* state)
 	{
 		luabridge::getGlobalNamespace(state)
-			.beginNamespace("Bubbles")
+			.beginNamespace(name::bubbles)
 				.beginClass<BubbleModel>("BubbleModel")
 					.addData("name", &BubbleModel::name, false)
 					.addData("colorless", &BubbleModel::colorless)
@@ -230,6 +348,8 @@ namespace lua::lib
 					.addStaticFunction("create", &bubmodel::createModel)
 				.endClass()
 			.endNamespace();
+
+		return { true, name::bubbles };
 	}
 }
 

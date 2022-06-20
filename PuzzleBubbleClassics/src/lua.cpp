@@ -1,4 +1,5 @@
 #include "lua.h"
+#include "lualibs.h"
 
 namespace lua
 {
@@ -47,8 +48,38 @@ namespace lua
 	LuaScript get_script(const char* filename) { return globals::luaScripts().getScript(filename); }
 	LuaScript get_script(const String& filename) { return globals::luaScripts().getScript(filename); }
 	LuaScript get_script(const Path& filepath) { return globals::luaScripts().getScript(filepath); }
+
+	LuaScript run_script(const char* filename)
+	{
+		auto script = get_script(filename);
+		script();
+		return script;
+	}
+	LuaScript run_script(const String& filename)
+	{
+		auto script = get_script(filename);
+		script();
+		return script;
+	}
+	LuaScript run_script(const Path& filepath)
+	{
+		auto script = get_script(filepath);
+		script();
+		return script;
+	}
 }
 
+
+
+
+
+
+LuaGlobalState::LuaGlobalState() :
+	_state(lua::new_state())
+{
+	lua::open_default_libs(_state);
+	lua::lib::load_defaults(_state);
+}
 
 
 
@@ -130,8 +161,8 @@ void LuaChunk::run(const LuaRef* customEnv) const
 
 void LuaChunk::prepareEnv(LuaState* state, const LuaRef& env)
 {
-	//env[lua::lib::defs::autoimport::Print] = luabridge::getGlobal(state, lua::lib::defs::autoimport::Print);
-	env[lua::lib::defs::autoimport::Import] = luabridge::getGlobal(state, lua::lib::defs::autoimport::Import);
+	env[lua::lib::defs::name::Import] = luabridge::getGlobal(state, lua::lib::defs::name::Import);
+	env[lua::lib::defs::name::OpenLib] = luabridge::getGlobal(state, lua::lib::defs::name::OpenLib);
 }
 
 

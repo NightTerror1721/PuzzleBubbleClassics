@@ -6,6 +6,7 @@ class FontManager;
 class TextureManager;
 class BubbleModelManager;
 class LuaScriptManager;
+class SoundManager;
 
 
 namespace globals
@@ -15,6 +16,7 @@ namespace globals
 	FontManager& fonts();
 	TextureManager& textures();
 	BubbleModelManager& bubbleModels();
+	SoundManager& sounds();
 }
 
 
@@ -26,6 +28,7 @@ private:
 	FontManager* _fonts;
 	TextureManager* _textures;
 	BubbleModelManager* _bubblesManager;
+	SoundManager* _sounds;
 
 private:
 	static GlobalsManager instance;
@@ -49,4 +52,5 @@ public:
 	friend FontManager& ::globals::fonts();
 	friend TextureManager& ::globals::textures();
 	friend BubbleModelManager& ::globals::bubbleModels();
+	friend SoundManager& ::globals::sounds();
 };

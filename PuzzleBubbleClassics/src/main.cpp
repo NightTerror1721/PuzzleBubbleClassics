@@ -1,4 +1,4 @@
-#include "props.h"
+/*#include "props.h"
 #include "json.h"
 #include "resources.h"
 #include "props.h"
@@ -6,29 +6,23 @@
 #include "lualibs.h"
 #include "game_basics.h"
 #include "game_controller.h"
+#include "bubbles.h"*/
+
+import Utils.BasicReference;
 
 
 
 int main(int argc, char** argv)
 {
-	globals::fonts().loadAll();
+	int x = 10;
+
+	//globals::fonts().loadAll();
 
 	//globals::game.start();
 
-	LuaState* state = lua::get_default_state();
+	//lua::run_script("test_scripts/config.lua");
 
-	lua::open_default_libs(state);
-	lua::lib::load_bubble_models_import(state);
-	lua::lib::load_defaults(state);
-
-	auto script = lua::get_script("test_scripts/test.lua");
-
-
-	script.setEnvValuesFromGlobal("Bubbles");
-	script();
-
-	script.getEnv().print(std::cout);
-	script.getEnvValue("name").print(std::cout);
+	//globals::bubbleModels().loadModels();
 
 
 	/*Json json = {

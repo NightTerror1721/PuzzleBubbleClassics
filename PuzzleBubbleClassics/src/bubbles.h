@@ -6,11 +6,15 @@
 #include "game_basics.h"
 #include "assets.h"
 #include "lua.h"
+#include "utils/BasicReference.h"
 #include "utils/SimpleElementManager.h"
 #include "utils/RNG.h"
 
 
 class Bubble;
+
+class BubbleBoardCell;
+using BubbleBoardCellLink = BasicReference<const BubbleBoardCell>;
 
 
 enum class BounceEdge
@@ -76,6 +80,11 @@ static constexpr BubbleColorCode numberToBubbleColorCode(_Ty code)
 		return validateCode(static_cast<BubbleColorCode>(code));
 	else
 		return validateCode(static_cast<BubbleColorCode>(static_cast<UInt8>(code)));
+}
+
+constexpr auto operator<=> (BubbleColorCode left, BubbleColorCode right)
+{
+	return bubbleColorCodeToNumber<UInt8>(left) <=> bubbleColorCodeToNumber<UInt8>(right);
 }
 
 
@@ -363,40 +372,58 @@ private:
 
 	BouncingBounds _bounce;
 
+	BubbleBoardCellLink _cell;
+
 public:
 	Bubble(const std::shared_ptr<BubbleModel>& model, TextureManager& textures = globals::textures());
 	virtual ~Bubble();
 
-	const std::shared_ptr<BubbleModel>& getModel() const;
-
-	bool hasExploited() const;
 	void explode();
 
-	void setSpeed(const Vector2f& speed);
-	const Vector2f& getSpeed() const;
+public:
+	inline const std::shared_ptr<BubbleModel>& getModel() const { return _model; }
 
-	void setAcceleration(const Vector2f& acceleration);
-	const Vector2f& getAcceleration() const;
+	inline bool hasExploited() const { return _exploited; }
 
-	void translate(const Vector2f& dp);
-	void translate(float dx, float dy);
-	void move(const Vector2f& speed, const Vector2f& acceleration = {});
+	inline void setSpeed(const Vector2f& speed) { _speed = speed; }
+	inline const Vector2f& getSpeed() const { return _speed; }
 
-	BubbleColor getColor() const;
+	inline void setAcceleration(const Vector2f& acceleration) { _acceleration = acceleration; }
+	inline const Vector2f& getAcceleration() const { return _acceleration; }
 
-	bool colorMatch(const std::shared_ptr<Bubble>& other) const;
+	inline void translate(const Vector2f& dp) { setPosition(getPosition() + dp); }
+	inline void translate(float dx, float dy) { translate({ dx, dy }); }
+	inline void move(const Vector2f& speed, const Vector2f& acceleration = {}) { _speed = speed; _acceleration = acceleration; }
 
-	AnimatedSprite* getSprite();
-	const AnimatedSprite* getSprite() const;
+	inline BubbleColor getColor() const { return _color; }
+
+	inline bool colorMatch(const std::shared_ptr<Bubble>& other) const { return _color.matches(other->_color); }
+
+	inline AnimatedSprite* getSprite() { return &_sprite; }
+	inline const AnimatedSprite* getSprite() const { return &_sprite; }
+
+	inline bool hasCell() const { return _cell; }
+	inline const BubbleBoardCell& getCell() const { return *_cell; }
+	inline void setCell(const BubbleBoardCell& cell) { _cell = cell; }
+	inline void removeCell() { _cell = nullptr; }
+	
 
 
 	/* Model functions */
-	Int8 getResistence() const;
-	bool isIndestructible() const;
-	bool isFloating() const;
-	bool destroyInBottom() const;
-	bool requireDestroyToClear() const;
-	float getPointsOfTurnsToDown() const;
+	inline Int8 getResistence() const { return _model->resistence; }
+	inline bool isIndestructible() const { return _model->resistence < 0; }
+	inline bool isFloating() const { return _model->floating; }
+	inline bool destroyInBottom() const { return _model->destroyInBottom; }
+	inline bool requireDestroyToClear() const { return _model->requireDestroyToClear; }
+	inline float getPointsOfTurnsToDown() const { return _model->pointsOfTurnsToDown; }
+
+public:
+	static constexpr UInt32 getRadius() { return radius; }
+	static constexpr UInt32 getHitboxWidth() { return hitboxWith; }
+	static constexpr UInt32 getHitboxHeight() { return hitboxHeight; }
+
+	static inline sf::Vector2f getSize() { return { radius, radius }; }
+	static inline sf::Vector2f getHitboxSize() { return { hitboxWith, hitboxHeight }; }
 };
 
 
@@ -421,6 +448,7 @@ public:
 	BubbleIdentifier& operator= (BubbleIdentifier&&) noexcept = default;
 
 	bool operator== (const BubbleIdentifier&) const = default;
+	auto operator<=> (const BubbleIdentifier&) const = default;
 
 public:
 	constexpr BubbleIdentifier(const String& modelName, BubbleColor color) : _model(modelName), _color(color) {}
@@ -470,6 +498,8 @@ public:
 	void setDefaultModel(const String& name);
 
 	std::shared_ptr<Bubble> createBubble(TextureManager& textures, bool editorMode, const String& modelName, BubbleColor color = BubbleColor::defaultColor()) const;
+
+	void loadModels();
 
 public:
 	inline std::shared_ptr<Bubble> createBubble(TextureManager& textures, bool editorMode, const BubbleIdentifier& identifier)

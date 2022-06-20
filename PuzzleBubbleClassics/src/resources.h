@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include "json.h"
+#include "lua.h"
 
 inline Path operator"" _p(const char* str, Size len)
 {
@@ -96,6 +97,17 @@ namespace resource
 			extractAndWrite(String{ filename }, obj);
 		}
 
+		LuaScript getLuaScript(const Path& path) const;
+		LuaScript runLuaScript(const Path& path) const;
+
+		inline LuaScript getLuaScript(const String& filename) const { return getLuaScript(Path(filename)); }
+		inline LuaScript getLuaScript(const char* filename) const { return getLuaScript(Path(filename)); }
+
+		inline LuaScript runLuaScript(const String& filename) const { return runLuaScript(Path(filename)); }
+		inline LuaScript runLuaScript(const char* filename) const { return runLuaScript(Path(filename)); }
+
+
+	public:
 		inline Path pathOf(const String& filename) const { return _path / filename; }
 		inline Path pathOf(const Path& path) const { return _path / path; }
 		inline Path pathOf(const char* filename) const { return _path / filename; }
@@ -124,4 +136,8 @@ namespace resource
 	extern const Folder data;
 	extern const Folder fonts;
 	extern const Folder textures;
+	extern const Folder models;
+	extern const Folder audio;
+	extern const Folder sounds;
+	extern const Folder music;
 }

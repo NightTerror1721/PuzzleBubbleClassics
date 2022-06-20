@@ -1,4 +1,5 @@
 #include "bubbles.h"
+#include "resources.h"
 
 
 const BubbleColor BubbleColor::Colorless = BubbleColorCode::Colorless;
@@ -82,7 +83,7 @@ void BubbleModel::lua_SetEvent(std::unique_ptr<LuaRef>& event, const LuaRef& fun
 	if (!func.isFunction() && !func.isNil())
 		lua::error(state, "Expected valid function on event setting.");
 	
-	event = std::unique_ptr<LuaRef>(new LuaRef(state, func));
+	event = std::make_unique<LuaRef>(state, func);
 }
 
 LuaRef BubbleModel::lua_GetEvent(const std::unique_ptr<LuaRef>& event, LuaState* state) const
@@ -151,45 +152,18 @@ Bubble::Bubble(const std::shared_ptr<BubbleModel>& model, TextureManager& texs) 
 	_floatingCheckPhase{ false },
 	_color{ BubbleColor::Colorless },
 	_sprite{},
-	_bounce{ *this }
+	_bounce{ *this },
+	_cell{}
 {}
 
 Bubble::~Bubble() {}
-
-const std::shared_ptr<BubbleModel>& Bubble::getModel() const { return _model; }
-
-bool Bubble::hasExploited() const { return _exploited; }
 
 void Bubble::explode()
 {
 	//TODO: Implement
 }
 
-void Bubble::setSpeed(const Vector2f& speed) { _speed = speed; }
-const Vector2f& Bubble::getSpeed() const { return _speed; }
 
-void Bubble::setAcceleration(const Vector2f& acceleration) { _acceleration = acceleration; }
-const Vector2f& Bubble::getAcceleration() const { return _acceleration; }
-
-void Bubble::translate(const Vector2f& dp) { setPosition(getPosition() + dp); }
-void Bubble::translate(float dx, float dy) { translate({ dx, dy }); }
-void Bubble::move(const Vector2f& speed, const Vector2f& acceleration) { _speed = speed; _acceleration = acceleration; }
-
-BubbleColor Bubble::getColor() const { return _color; }
-
-bool Bubble::colorMatch(const std::shared_ptr<Bubble>& other) const { return _color.matches(other->_color); }
-
-AnimatedSprite* Bubble::getSprite() { return &_sprite; }
-const AnimatedSprite* Bubble::getSprite() const { return &_sprite; }
-
-
-/* Model functions */
-Int8 Bubble::getResistence() const { return _model->resistence; }
-bool Bubble::isIndestructible() const { return _model->resistence < 0; }
-bool Bubble::isFloating() const { return _model->floating; }
-bool Bubble::destroyInBottom() const { return _model->destroyInBottom; }
-bool Bubble::requireDestroyToClear() const { return _model->requireDestroyToClear; }
-float Bubble::getPointsOfTurnsToDown() const { return _model->pointsOfTurnsToDown; }
 
 
 
@@ -244,6 +218,11 @@ std::shared_ptr<Bubble> BubbleModelManager::createBubble(TextureManager& texture
 	model->callOnInit(bubble, color, editorMode);
 
 	return bubble;
+}
+
+void BubbleModelManager::loadModels()
+{
+	resource::models.runLuaScript("config.lua");
 }
 
 

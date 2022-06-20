@@ -18,7 +18,9 @@
 #include <vector>
 #include <limits>
 #include <ranges>
+#include <queue>
 #include <stack>
+#include <list>
 #include <map>
 #include <new>
 
@@ -46,6 +48,9 @@ using sf::Vector2i;
 using sf::Vector2u;
 
 namespace fs = std::filesystem;
+
+enum class PlayerId : UInt8 { First = 0, Second = 1, Single = First };
+enum class TimerMode : UInt8 { TURN = 0x1, END = 0x2, TURN_AND_END = TURN | END };
 
 namespace utils
 {
@@ -76,7 +81,7 @@ namespace utils
 	constexpr _Ty& copy_construct(_Ty& dst, const _Ty& src) { return construct(dst, src); }
 
 	template <std::move_constructible _Ty>
-	constexpr _Ty& move_construct(_Ty& dst, _Ty&& src) { return construct(dst, std::move(src)); }
+	constexpr _Ty& move_construct(_Ty& dst, _Ty&& src) { return construct(dst, std::forward(src)); }
 
 	template <std::integral _Ty>
 	constexpr _Ty clamp(_Ty value, std::convertible_to<_Ty> auto min, std::convertible_to<_Ty> auto max)
@@ -111,9 +116,15 @@ namespace utils
 		return value == static_cast<double>(static_cast<Int64>(value));
 	}
 
+	template <std::integral _Ty>
+	constexpr bool is_pair(_Ty value)
+	{
+		return (value % static_cast<_Ty>(value)) == 0;
+	}
+
 	inline Int64 systemTime()
 	{
-		return static_cast<Int64>((std::chrono::system_clock::now().time_since_epoch().count()));
+		return std::chrono::system_clock::now().time_since_epoch().count();
 	}
 }
 
@@ -152,7 +163,7 @@ namespace utils::bit
 	template <std::integral _Ty>
 	constexpr bool get(_Ty base, unsigned int position)
 	{
-		return (base >> position) & static_cast<_Ty>(0x1) == static_cast<_Ty>(0x1);
+		return ((base >> position) & static_cast<_Ty>(0x1)) == static_cast<_Ty>(0x1);
 	}
 
 	template <std::integral _Ty>
