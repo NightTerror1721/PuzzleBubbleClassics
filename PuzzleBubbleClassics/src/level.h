@@ -1,7 +1,8 @@
 #pragma once
 
 #include "bubbles.h"
-#include "utils/ArrayView.h"
+#include "utils/StaticArray.h"
+
 
 typedef UInt32 RowCount;
 typedef UInt32 RowIndex;

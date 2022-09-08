@@ -4,12 +4,12 @@
 #include <algorithm>
 #include <new>
 
-#include "ArrayView.h"
 #include "ArrayIterator.h"
+#include "ArrayView.h"
 
 
 template <typename _Ty, std::unsigned_integral _SizeTy = std::size_t> requires
-	std::default_initializable<_Ty> && std::destructible<_Ty>
+std::default_initializable<_Ty>&& std::destructible<_Ty>
 class StaticArray
 {
 public:
@@ -38,7 +38,9 @@ public:
 	constexpr StaticArray(const StaticArray& other) requires std::copyable<SubscribedType> :
 		StaticArray(other._size) { _copydata(_array, other._array); }
 	constexpr StaticArray(StaticArray&& other) noexcept :
-		StaticArray() { _move(_array, other._array); }
+		StaticArray() {
+		_move(_array, other._array);
+	}
 	constexpr ~StaticArray() { _destroy(); }
 
 	constexpr StaticArray& operator= (const StaticArray& right)

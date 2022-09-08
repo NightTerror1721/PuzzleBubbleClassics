@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <concepts>
 #include <vector>
 #include <array>
@@ -8,6 +7,7 @@
 #include <new>
 
 #include "ArrayIterator.h"
+
 
 template<typename _Ty, std::unsigned_integral _SizeTy = std::size_t>
 class ArrayView
@@ -60,7 +60,7 @@ public:
 
 	template <typename... _ArgsTys>
 	constexpr void emplace(IndexType index, _ArgsTys&&... args) requires
-		std::constructible_from<SubscribedType, _ArgsTys...> &&
+		std::constructible_from<SubscribedType, _ArgsTys...>&&
 		std::destructible<SubscribedType>
 	{
 		check_range(index);

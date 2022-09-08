@@ -22,7 +22,7 @@ public:
     using reference = _Ty&;
 
 private:
-	pointer _ptr;
+    pointer _ptr;
 
 public:
     constexpr ArrayIterator(pointer ptr) : _ptr(ptr) {}
@@ -41,7 +41,7 @@ public:
 
     constexpr pointer operator-> () { return _ptr; }
 
-    constexpr ArrayIterator& operator++ () { return _ptr++, *this; }
+    constexpr ArrayIterator& operator++ () { return _ptr++, * this; }
     constexpr ArrayIterator operator++ (int) { ArrayIterator tmp(*this); return ++(*this), tmp; }
 
 public:

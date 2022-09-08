@@ -6,6 +6,7 @@
 #include <exception>
 #include <unordered_map>
 
+#include "BasicReference.h"
 #include "NullableReference.h"
 
 template <typename _Ty, typename _KeyTy = std::string> requires

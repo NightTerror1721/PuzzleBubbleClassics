@@ -1,4 +1,4 @@
-/*#include "props.h"
+#include "props.h"
 #include "json.h"
 #include "resources.h"
 #include "props.h"
@@ -6,16 +6,12 @@
 #include "lualibs.h"
 #include "game_basics.h"
 #include "game_controller.h"
-#include "bubbles.h"*/
-
-import Utils.BasicReference;
+#include "bubbles.h"
 
 
 
 int main(int argc, char** argv)
 {
-	int x = 10;
-
 	//globals::fonts().loadAll();
 
 	//globals::game.start();
@@ -25,7 +21,7 @@ int main(int argc, char** argv)
 	//globals::bubbleModels().loadModels();
 
 
-	/*Json json = {
+	Json json = {
 		{ "name", "Krampus" },
 		{ "power", 50 },
 		{ "dash", true }
@@ -44,7 +40,7 @@ int main(int argc, char** argv)
 
 	gprops::dump(std::cout, 4);
 
-	gprops::store();*/
+	gprops::store();
 
 
 	/*lua_State* lstate = luaL_newstate();

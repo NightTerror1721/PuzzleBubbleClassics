@@ -45,6 +45,7 @@ public:
 	friend ConstNullableReference;
 };
 
+
 template <typename _Ty>
 class ConstNullableReference
 {

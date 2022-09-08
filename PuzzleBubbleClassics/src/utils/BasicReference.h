@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 template <typename _Ty>
 class BasicReference
 {
@@ -40,3 +42,5 @@ public:
 	inline ReferenceType operator* () const { return *_ref; }
 	inline PointerType operator-> () const { return _ref; }
 };
+
+using IntRef = BasicReference<int>;

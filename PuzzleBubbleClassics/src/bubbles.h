@@ -6,9 +6,9 @@
 #include "game_basics.h"
 #include "assets.h"
 #include "lua.h"
-#include "utils/BasicReference.h"
 #include "utils/SimpleElementManager.h"
 #include "utils/RNG.h"
+#include "utils/BasicReference.h"
 
 
 class Bubble;

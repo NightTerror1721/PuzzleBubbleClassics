@@ -1,3 +1,5 @@
+module;
+
 #include <iostream>
 
 export module Utils.BasicReference;
