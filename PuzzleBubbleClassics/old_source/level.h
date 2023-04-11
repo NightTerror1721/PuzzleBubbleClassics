@@ -1,8 +1,8 @@
 #pragma once
 
 #include "bubbles.h"
+#include "utils/StaticArray.h"
 
-import Utils.Arrays;
 
 typedef UInt32 RowCount;
 typedef UInt32 RowIndex;

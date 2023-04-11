@@ -1,26 +1,26 @@
 // https://github.com/kunitoki/LuaBridge3
 // Copyright 2020, Lucio Asnaghi
-// Copyright 2019, Dmitry Tarakanov
+// Copyright 2020, Dmitry Tarakanov
 // SPDX-License-Identifier: MIT
 
 #pragma once
 
 #include "detail/Stack.h"
 
-#include <unordered_map>
+#include <array>
 
 namespace luabridge {
 
 //=================================================================================================
 /**
- * @brief Stack specialization for `std::unordered_map`.
+ * @brief Stack specialization for `std::array`.
  */
-template <class K, class V>
-struct Stack<std::unordered_map<K, V>>
+template <class T, std::size_t Size>
+struct Stack<std::array<T, Size>>
 {
-    using Type = std::unordered_map<K, V>;
+    using Type = std::array<T, Size>;
 
-    [[nodiscard]] static Result push(lua_State* L, const Type& map)
+    [[nodiscard]] static Result push(lua_State* L, const Type& array)
     {
 #if LUABRIDGE_SAFE_STACK_CHECKS
         if (! lua_checkstack(L, 3))
@@ -29,15 +29,13 @@ struct Stack<std::unordered_map<K, V>>
 
         StackRestore stackRestore(L);
 
-        lua_createtable(L, 0, static_cast<int>(map.size()));
+        lua_createtable(L, static_cast<int>(Size), 0);
 
-        for (auto it = map.begin(); it != map.end(); ++it)
+        for (std::size_t i = 0; i < Size; ++i)
         {
-            auto result = Stack<K>::push(L, it->first);
-            if (! result)
-                return result;
+            lua_pushinteger(L, static_cast<lua_Integer>(i + 1));
 
-            result = Stack<V>::push(L, it->second);
+            auto result = Stack<T>::push(L, array[i]);
             if (! result)
                 return result;
 
@@ -53,33 +51,33 @@ struct Stack<std::unordered_map<K, V>>
         if (!lua_istable(L, index))
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+        if (get_length(L, index) != Size)
+            return makeErrorCode(ErrorCode::InvalidTableSizeInCast);
+
         const StackRestore stackRestore(L);
 
-        Type map;
+        Type array;
 
         int absIndex = lua_absindex(L, index);
         lua_pushnil(L);
 
+        int arrayIndex = 0;
         while (lua_next(L, absIndex) != 0)
         {
-            auto value = Stack<V>::get(L, -1);
-            if (! value)
+            auto item = Stack<T>::get(L, -1);
+            if (!item)
                 return makeErrorCode(ErrorCode::InvalidTypeCast);
 
-            auto key = Stack<K>::get(L, -2);
-            if (! key)
-                return makeErrorCode(ErrorCode::InvalidTypeCast);
-
-            map.emplace(*key, *value);
+            array[arrayIndex++] = *item;
             lua_pop(L, 1);
         }
 
-        return map;
+        return array;
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
     {
-        return lua_istable(L, index);
+        return lua_istable(L, index) && get_length(L, index) == Size;
     }
 };
 

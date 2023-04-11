@@ -92,7 +92,7 @@ void BubbleBoardRow::descend()
 	for (const auto& cell : _cells)
 	{
 		if (cell.hasBubble())
-			cell->translate(0, Bubble::getHitboxHeight());
+			cell->translate(0, static_cast<float>(Bubble::getHitboxHeight()));
 	}
 }
 

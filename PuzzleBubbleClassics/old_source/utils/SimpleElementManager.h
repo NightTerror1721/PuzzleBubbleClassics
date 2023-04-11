@@ -6,7 +6,8 @@
 #include <exception>
 #include <unordered_map>
 
-import Utils.NullableReference;
+#include "BasicReference.h"
+#include "NullableReference.h"
 
 template <typename _Ty, typename _KeyTy = std::string> requires
 	std::default_initializable<_Ty>&&

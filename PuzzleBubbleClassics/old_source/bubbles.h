@@ -8,9 +8,7 @@
 #include "lua.h"
 #include "utils/SimpleElementManager.h"
 #include "utils/RNG.h"
-
-
-import Utils.BasicReference;
+#include "utils/BasicReference.h"
 
 
 class Bubble;

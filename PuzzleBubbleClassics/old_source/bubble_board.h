@@ -2,10 +2,8 @@
 
 #include "bubbles.h"
 #include "level.h"
-
-
-import Utils.BasicReference;
-import Utils.Arrays;
+#include "utils/BasicReference.h"
+#include "utils/StaticArray.h"
 
 
 class Scenario;
@@ -176,7 +174,7 @@ inline RowIndex BubbleBoardCell::getRow() const { return isValid() ? _owner->get
 class DescentManager
 {
 private:
-	static constexpr float maxDelay = 0.1625;
+	static constexpr float maxDelay = 0.1625f;
 
 private:
 	struct Row
