@@ -19,7 +19,62 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\arrow.cpp" />
+    <ClCompile Include="src\bubble.cpp" />
+    <ClCompile Include="src\bubble_board.cpp" />
+    <ClCompile Include="src\bubble_gen.cpp" />
+    <ClCompile Include="src\font.cpp" />
+    <ClCompile Include="src\game_controller.cpp" />
+    <ClCompile Include="src\level.cpp" />
+    <ClCompile Include="src\lua\module.cpp" />
+    <ClCompile Include="src\lua\native_module.cpp" />
+    <ClCompile Include="src\lua\template.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\data.cpp" />
+    <ClCompile Include="src\motion.cpp" />
+    <ClCompile Include="src\particle.cpp" />
+    <ClCompile Include="src\scenario_utils.cpp" />
+    <ClCompile Include="src\sprite.cpp" />
+    <ClCompile Include="src\utils\debug_grid.cpp" />
+    <ClCompile Include="src\utils\json.cpp" />
+    <ClCompile Include="src\utils\logger.cpp" />
+    <ClCompile Include="src\utils\path.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\arrow.h" />
+    <ClInclude Include="src\bubble.h" />
+    <ClInclude Include="src\bubble_board.h" />
+    <ClInclude Include="src\bubble_gen.h" />
+    <ClInclude Include="src\font.h" />
+    <ClInclude Include="src\game_controller.h" />
+    <ClInclude Include="src\level.h" />
+    <ClInclude Include="src\lua\constants.h" />
+    <ClInclude Include="src\lua\env.h" />
+    <ClInclude Include="src\lua\local_values.h" />
+    <ClInclude Include="src\lua\module.h" />
+    <ClInclude Include="src\lua\native_module.h" />
+    <ClInclude Include="src\lua\template.h" />
+    <ClInclude Include="src\motion.h" />
+    <ClInclude Include="src\object_basics.h" />
+    <ClInclude Include="src\data.h" />
+    <ClInclude Include="src\particle.h" />
+    <ClInclude Include="src\resources.h" />
+    <ClInclude Include="src\scenario.h" />
+    <ClInclude Include="src\scenario_utils.h" />
+    <ClInclude Include="src\sprite.h" />
+    <ClInclude Include="src\utils\angle.h" />
+    <ClInclude Include="src\utils\debug_grid.h" />
+    <ClInclude Include="src\utils\io.h" />
+    <ClInclude Include="src\utils\json.h" />
+    <ClInclude Include="src\utils\logger.h" />
+    <ClInclude Include="src\utils\manager.h" />
+    <ClInclude Include="src\utils\math.h" />
+    <ClInclude Include="src\utils\path.h" />
+    <ClInclude Include="src\utils\rawtypes.h" />
+    <ClInclude Include="src\utils\reference.h" />
+    <ClInclude Include="src\utils\rng.h" />
+    <ClInclude Include="src\utils\str.h" />
+    <ClInclude Include="src\utils\transform_utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -125,7 +180,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>libs\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;libs\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableModules>false</EnableModules>
     </ClCompile>
     <Link>
@@ -148,7 +203,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>libs\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;libs\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableModules>false</EnableModules>
     </ClCompile>
     <Link>
